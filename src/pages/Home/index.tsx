@@ -13,6 +13,7 @@ import {
   StartCountdownButton,
   TaskInput,
 } from './styles'
+import { toast } from 'react-toastify'
 
 const newCycleFormSchema = zod.object({
   task: zod
@@ -80,9 +81,18 @@ const Home = () => {
 
     setCycles((state) => [...state, newCycle])
     setActiveCycleId(newCycle.id)
+    setAmountSecondsPassed(0)
+
+    toast.success('Novo ciclo criado com sucesso!')
 
     reset()
   }
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `Tempo do ciclo: ${minutes}:${seconds}`
+    }
+  }, [activeCycle, minutes, seconds])
 
   const task = watch('task')
   const minutesAmount = watch('minutesAmount')
