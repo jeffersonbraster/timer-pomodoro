@@ -68,8 +68,6 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
     setAmountSecondsPassed(0)
 
     toast.success('Novo ciclo criado com sucesso!')
-
-    //  reset()
   }
 
   const interruptCurrentCycle = () => {
