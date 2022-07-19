@@ -32,17 +32,44 @@ interface CycleContextProviderProps {
   children: ReactNode
 }
 
+interface CyclesState {
+  cycles: Cycle[]
+  activeCycleId: string | null
+}
+
 export function CyclesContextProvider({ children }: CycleContextProviderProps) {
-  const [cycles, dispatch] = useReducer((state: Cycle[], action: any) => {
-    if (action.type === 'CREATE_NEW_CYCLE') {
-      return [...state, action.payload]
-    }
+  const [cyclesState, dispatch] = useReducer(
+    (state: CyclesState, action: any) => {
+      if (action.type === 'CREATE_NEW_CYCLE') {
+        console.log(action.payload)
+        return {
+          ...state,
+          cycles: [...state.cycles, action.payload],
+          activeCycleId: action.payload.id,
+        }
+      }
 
-    return state
-  }, [])
+      if (action.type === 'INTERRUPT_CURRENT_CYCLE') {
+        return {
+          ...state,
+          cycles: state.cycles.map((cycle) => {
+            if (cycle.id === state.activeCycleId) {
+              return { ...cycle, interruptedDate: new Date() }
+            } else {
+              return cycle
+            }
+          }),
+          activeCycleId: null,
+        }
+      }
 
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+      return state
+    },
+    { cycles: [], activeCycleId: null },
+  )
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+
+  const { cycles, activeCycleId } = cyclesState
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
@@ -74,7 +101,7 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
     dispatch({ type: 'CREATE_NEW_CYCLE', payload: newCycle })
 
     // setCycles((state) => [...state, newCycle])
-    setActiveCycleId(newCycle.id)
+
     setAmountSecondsPassed(0)
 
     toast.success('Novo ciclo criado com sucesso!')
@@ -91,7 +118,6 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
     //     }
     //   }),
     // )
-    setActiveCycleId(null)
   }
 
   return (
