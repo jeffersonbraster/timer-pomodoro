@@ -1,6 +1,11 @@
 import { createContext, ReactNode, useReducer, useState } from 'react'
 import { toast } from 'react-toastify'
-import { ActionTypes, Cycle, cyclesReducer } from '../reducers/cycles'
+import {
+  addNewCycleAction,
+  interruptCurrentCycleAction,
+  markCurrentCycleAsFinishedAction,
+} from '../reducers/cycles/actions'
+import { Cycle, cyclesReducer } from '../reducers/cycles/reducer'
 
 interface NewCycle {
   task: string
@@ -47,7 +52,8 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
       startDate: new Date(),
     }
 
-    dispatch({ type: ActionTypes.CREATE_NEW_CYCLE, payload: newCycle })
+    // dispatch({ type: ActionTypes.CREATE_NEW_CYCLE, payload: newCycle })
+    dispatch(addNewCycleAction(newCycle))
 
     setAmountSecondsPassed(0)
 
@@ -55,18 +61,12 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
   }
 
   const markCurrentCycleAsFinished = () => {
-    dispatch({
-      type: ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED,
-      payload: activeCycleId,
-    })
+    dispatch(markCurrentCycleAsFinishedAction())
     toast.success('Ciclo finalizado!')
   }
 
   const interruptCurrentCycle = () => {
-    dispatch({
-      type: ActionTypes.INTERRUPT_CURRENT_CYCLE,
-      payload: activeCycleId,
-    })
+    dispatch(interruptCurrentCycleAction())
 
     toast.error('Ciclo interrompido!')
   }
