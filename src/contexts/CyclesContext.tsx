@@ -1,14 +1,6 @@
 import { createContext, ReactNode, useReducer, useState } from 'react'
 import { toast } from 'react-toastify'
-
-interface Cycle {
-  id: string
-  task: string
-  minutesAmount: number
-  startDate: Date
-  interruptedDate?: Date
-  finishedDate?: Date
-}
+import { ActionTypes, Cycle, cyclesReducer } from '../reducers/cycles'
 
 interface NewCycle {
   task: string
@@ -32,54 +24,11 @@ interface CycleContextProviderProps {
   children: ReactNode
 }
 
-interface CyclesState {
-  cycles: Cycle[]
-  activeCycleId: string | null
-}
-
 export function CyclesContextProvider({ children }: CycleContextProviderProps) {
-  const [cyclesState, dispatch] = useReducer(
-    (state: CyclesState, action: any) => {
-      switch (action.type) {
-        case 'CREATE_NEW_CYCLE':
-          return {
-            ...state,
-            cycles: [...state.cycles, action.payload],
-            activeCycleId: action.payload.id,
-          }
-
-        case 'INTERRUPT_CURRENT_CYCLE':
-          return {
-            ...state,
-            cycles: state.cycles.map((cycle) => {
-              if (cycle.id === state.activeCycleId) {
-                return { ...cycle, interruptedDate: new Date() }
-              } else {
-                return cycle
-              }
-            }),
-            activeCycleId: null,
-          }
-
-        case 'MARK_CURRENT_CYCLE_AS_FINISHED':
-          return {
-            ...state,
-            cycles: state.cycles.map((cycle) => {
-              if (cycle.id === state.activeCycleId) {
-                return { ...cycle, finishedDate: new Date() }
-              } else {
-                return cycle
-              }
-            }),
-            activeCycleId: null,
-          }
-
-        default:
-          return state
-      }
-    },
-    { cycles: [], activeCycleId: null },
-  )
+  const [cyclesState, dispatch] = useReducer(cyclesReducer, {
+    cycles: [],
+    activeCycleId: null,
+  })
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
   const { cycles, activeCycleId } = cyclesState
@@ -90,10 +39,6 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
     setAmountSecondsPassed(seconds)
   }
 
-  const markCurrentCycleAsFinished = () => {
-    dispatch({ type: 'MARK_CURRENT_CYCLE_AS_FINISHED', payload: activeCycleId })
-  }
-
   const createNewCycle = (data: NewCycle) => {
     const newCycle: Cycle = {
       id: new Date().getTime().toString(),
@@ -102,15 +47,28 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
       startDate: new Date(),
     }
 
-    dispatch({ type: 'CREATE_NEW_CYCLE', payload: newCycle })
+    dispatch({ type: ActionTypes.CREATE_NEW_CYCLE, payload: newCycle })
 
     setAmountSecondsPassed(0)
 
-    toast.success('Novo ciclo criado com sucesso!')
+    toast.info('Novo ciclo criado com sucesso!')
+  }
+
+  const markCurrentCycleAsFinished = () => {
+    dispatch({
+      type: ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED,
+      payload: activeCycleId,
+    })
+    toast.success('Ciclo finalizado!')
   }
 
   const interruptCurrentCycle = () => {
-    dispatch({ type: 'INTERRUPT_CURRENT_CYCLE', payload: activeCycleId })
+    dispatch({
+      type: ActionTypes.INTERRUPT_CURRENT_CYCLE,
+      payload: activeCycleId,
+    })
+
+    toast.error('Ciclo interrompido!')
   }
 
   return (
